@@ -137,11 +137,10 @@ The non-AlphaFold Python package requirements are listed in `requirements.txt`.
 Those specific
 package versions should work, but there should also be plenty of flexibility on the
 versions. The TCR and MHC parsing code also requires the NCBI BLAST+ software
-to be installed, which can be done by running the script
-`download_blast.py`. A potential installation route would be:
+to be installed, which can be done using conda. A potential installation route would be:
 
 ```
-conda create --name tcrdock_test python blast
+conda create -c bioconda --name tcrdock_test python blast
 source activate tcrdock_test   # or: conda activate tcrdock_test
 pip install <path/to/cloned/repo>
 ```
