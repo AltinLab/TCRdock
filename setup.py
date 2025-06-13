@@ -27,4 +27,18 @@ setup(
     cmdclass={
         "install": CustomInstall,
     },
+    package_data={
+        "": [
+            "**/*.alfas",
+            "**/*.fasta",
+            "**/*.txt",
+            "**/*.tsv",
+            "**/tcr/*.pdb",
+            "**/tcr/*.json",
+            "**/ternary/*.pdb",
+            "**/ternary/*.json",
+            "**/pmhc/*.pdb",
+            "**/pmhc/*.json",
+        ]
+    },
 )
