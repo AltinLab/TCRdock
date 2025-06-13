@@ -73,9 +73,7 @@ class TCRdockInfo:
 
         else:
             assert mhc_class == 2
-            self.mhc_core = mhc_util.get_mhc_core_positions_class2(
-                mhc_aseq, mhc_bseq
-            )
+            self.mhc_core = mhc_util.get_mhc_core_positions_class2(mhc_aseq, mhc_bseq)
             self.mhc_allele = (
                 mhc_util.get_mhc_allele(mhc_aseq, organism)
                 + ","
@@ -115,9 +113,7 @@ class TCRdockInfo:
             self.tcr_cdrs.extend(
                 [(int(x[0] + offset), int(x[1] + offset)) for x in cdr_loops]
             )
-            self.tcr_core.extend(
-                [int(x + offset) for x in res["core_positions"]]
-            )
+            self.tcr_core.extend([int(x + offset) for x in res["core_positions"]])
 
             offset += len(chainseq)
         self.valid = True  # signal success
@@ -129,17 +125,13 @@ class TCRdockInfo:
 
         will be bad if old2new doesn't cover all our positions
         """
-        old2new = {
-            int(x): int(y) for x, y in old2new.items()
-        }  # no int64 in our data!
+        old2new = {int(x): int(y) for x, y in old2new.items()}  # no int64 in our data!
         if self.mhc_core is not None:
             self.mhc_core = [old2new[x] for x in self.mhc_core]
         if self.tcr_core is not None:
             self.tcr_core = [old2new[x] for x in self.tcr_core]
         if self.tcr_cdrs is not None:
-            self.tcr_cdrs = [
-                (old2new[x], old2new[y]) for x, y in self.tcr_cdrs
-            ]
+            self.tcr_cdrs = [(old2new[x], old2new[y]) for x, y in self.tcr_cdrs]
         return self
 
     def delete_residue_range(self, start, stop):

@@ -88,9 +88,7 @@ def get_mhc_core_positions_class2(
         hit = hits.iloc[0]
         blast_align = blast.setup_query_to_hit_map(hit)
         if hit.pident < 99.99:
-            print(
-                "get_mhc_core_positions_class2:", ab, hit.saccver, hit.pident
-            )
+            print("get_mhc_core_positions_class2:", ab, hit.saccver, hit.pident)
 
         alfas = sequtil.mhc_class_2_alfas[ab][hit.saccver]
         hitseq = alfas.replace(ALL_GENES_GAP_CHAR, "")
@@ -184,9 +182,7 @@ def get_mhc_stub(
     # current_x = stub.rotation().col_x()
     # was hardcoding pep_chain to 2 here...
     chainbounds = pose["chainbounds"]
-    pep_positions = list(
-        range(chainbounds[pep_chain], chainbounds[pep_chain + 1])
-    )
+    pep_positions = list(range(chainbounds[pep_chain], chainbounds[pep_chain + 1]))
     pep_centroid = np.mean(pose["ca_coords"][pep_positions], axis=0)
 
     stub = superimpose.get_symmetry_stub_from_positions(
@@ -213,9 +209,7 @@ def orient_pmhc_pose(
                 mhc_core_positions = get_mhc_core_positions_class1(cs[0])
             else:
                 assert mhc_class == 2
-                mhc_core_positions = get_mhc_core_positions_class2(
-                    cs[0], cs[1]
-                )
+                mhc_core_positions = get_mhc_core_positions_class2(cs[0], cs[1])
         else:
             mhc_core_positions = tdinfo.mhc_core
 
@@ -247,8 +241,7 @@ def make_sorting_tuple(allele):
 def get_mhc_allele(seq, organism, return_identity=False):
     if organism == "human":
         dbfile = (
-            util.path_to_db
-            / "hla_prot_plus_trimmed_minus_funny_w_CD1s_nr_v2.fasta"
+            util.path_to_db / "hla_prot_plus_trimmed_minus_funny_w_CD1s_nr_v2.fasta"
         )
     else:
         assert organism == "mouse"
@@ -259,10 +252,7 @@ def get_mhc_allele(seq, organism, return_identity=False):
     top_hits = hits[hits.bitscore == top_bitscore].reset_index()
     if top_hits.shape[0] > 1:  # ties
         # print('ties:', top_hits.shape[0])
-        sortl = [
-            (make_sorting_tuple(a), a, i)
-            for i, a in enumerate(top_hits.saccver)
-        ]
+        sortl = [(make_sorting_tuple(a), a, i) for i, a in enumerate(top_hits.saccver)]
         sortl.sort()
         # print('sorted:', sortl)
         ind = sortl[0][-1]

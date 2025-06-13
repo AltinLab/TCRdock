@@ -34,12 +34,8 @@ human_structure_alignments = pd.read_table(
 human_structure_alignments.set_index("v_gene", drop=True, inplace=True)
 
 # human and mouse
-both_structure_alignments = pd.read_table(
-    path_to_db / "new_both_vg_alignments_v1.tsv"
-)
-both_structure_alignments.set_index(
-    ["organism", "v_gene"], drop=True, inplace=True
-)
+both_structure_alignments = pd.read_table(path_to_db / "new_both_vg_alignments_v1.tsv")
+both_structure_alignments.set_index(["organism", "v_gene"], drop=True, inplace=True)
 
 
 def read_fasta(filename):  # helper
@@ -159,9 +155,7 @@ ternary_info = all_template_info[TERNARY]
 all_template_poses = {TCR: {}, PMHC: {}, TERNARY: {}}
 
 BAD_DGEOM_PDBIDS = "5sws 7jwi 4jry 4nhu 3tjh 4y19 4y1a 1ymm 2wbj 6uz1".split()
-BAD_PMHC_PDBIDS = (
-    "3rgv 4ms8 6v1a 6v19 6v18 6v15 6v13 6v0y 2uwe 2jcc 2j8u 1lp9".split()
-)
+BAD_PMHC_PDBIDS = "3rgv 4ms8 6v1a 6v19 6v18 6v15 6v13 6v0y 2uwe 2jcc 2j8u 1lp9".split()
 # (new) 6uz1 is engineered and binds down by B2M
 # 3rgv has cterm of peptide out of groove
 # 4ms8 has chainbreaks (should check for those!)
@@ -191,9 +185,7 @@ _cached_tcrdisters = {}
 
 def get_tcrdister(organism):
     if organism not in _cached_tcrdisters:
-        _cached_tcrdisters[organism] = tcrdist.tcr_distances.TcrDistCalculator(
-            organism
-        )
+        _cached_tcrdisters[organism] = tcrdist.tcr_distances.TcrDistCalculator(organism)
     return _cached_tcrdisters[organism]
 
 
@@ -207,7 +199,7 @@ def blosum_align(
 ):
     """return 0-indexed dictionary mapping from seq1 to seq2 positions"""
 
-    scorematrix = substitution_matrix.load("BLOSUM62")
+    scorematrix = substitution_matrices.load("BLOSUM62")
 
     if global_align:
         alignments = pairwise2.align.globalds(
@@ -294,9 +286,7 @@ all_core_alseq_positions_0x = {}
 for organism in extra_alignment_columns_1x:
     for ab, xcols in extra_alignment_columns_1x[organism].items():
         positions = [
-            x
-            - 1
-            + sum(y <= x for y in xcols)  # this is not quite right but it wrks
+            x - 1 + sum(y <= x for y in xcols)  # this is not quite right but it wrks
             for x in core_positions_generic_1x
         ]
 
@@ -336,16 +326,12 @@ def align_chainseq_to_imgt_msa(organism, chainseq, v_gene):
 
     chainseq_to_geneseq = blosum_align(chainseq, geneseq)
 
-    chainseq_to_alseq = {
-        i: geneseq_to_alseq[j] for i, j in chainseq_to_geneseq.items()
-    }
+    chainseq_to_alseq = {i: geneseq_to_alseq[j] for i, j in chainseq_to_geneseq.items()}
 
     return chainseq_to_alseq
 
 
-def align_chainseq_to_structure_msa(
-    organism, chainseq, v_gene, msa_type="both"
-):
+def align_chainseq_to_structure_msa(organism, chainseq, v_gene, msa_type="both"):
     assert msa_type in ["both", "human"]
 
     if msa_type == "human":
@@ -369,9 +355,7 @@ def align_chainseq_to_structure_msa(
 
     chainseq_to_geneseq = blosum_align(chainseq, geneseq)
 
-    chainseq_to_alseq = {
-        i: geneseq_to_alseq[j] for i, j in chainseq_to_geneseq.items()
-    }
+    chainseq_to_alseq = {i: geneseq_to_alseq[j] for i, j in chainseq_to_geneseq.items()}
 
     return chainseq_to_alseq
 
@@ -388,9 +372,7 @@ def align_tcr_info_pdb_chain_to_structure_msa(pdbid, ab, msa_type_in):
             "both": {"A": {}, "B": {}},
             "human": {"A": {}, "B": {}},
         }
-        print(
-            "setting up cache for align_tcr_info_pdb_chain_to_structure_msa function"
-        )
+        print("setting up cache for align_tcr_info_pdb_chain_to_structure_msa function")
         for l in tcr_info.itertuples():
             geneseq = get_v_seq_up_to_cys(l.organism, l.v_gene)
             for msa_type in ["both", "human"]:
@@ -411,12 +393,9 @@ def align_tcr_info_pdb_chain_to_structure_msa(pdbid, ab, msa_type_in):
                 chainseq_to_geneseq = blosum_align(l.chainseq, geneseq)
 
                 chainseq_to_alseq = {
-                    i: geneseq_to_alseq[j]
-                    for i, j in chainseq_to_geneseq.items()
+                    i: geneseq_to_alseq[j] for i, j in chainseq_to_geneseq.items()
                 }
-                _tcr_alignment_cache[msa_type][l.ab][
-                    l.pdbid
-                ] = chainseq_to_alseq
+                _tcr_alignment_cache[msa_type][l.ab][l.pdbid] = chainseq_to_alseq
 
         print(
             "DONE setting up cache for align_tcr_info_pdb_chain_to_structure_msa",
@@ -463,9 +442,7 @@ def get_tcr_chain_trim_positions(organism, chainseq, v, j, cdr3):
             print("N None:", organism, v)
             geneseq_positions.append(None)
         else:
-            geneseq_positions.append(
-                pos - alseq[:pos].count(ALL_GENES_GAP_CHAR)
-            )
+            geneseq_positions.append(pos - alseq[:pos].count(ALL_GENES_GAP_CHAR))
 
     start, stop = core_positions_0x[0], core_positions_0x[9]  # inclusive!
     geneseq_positions.extend(range(start, stop + 1))
@@ -529,9 +506,7 @@ def align_vgene_to_template_pdb_chain(
 
     # align V regions
     msa_type = (
-        "human"
-        if trg_organism == "human" and tmp_organism == "human"
-        else "both"
+        "human" if trg_organism == "human" and tmp_organism == "human" else "both"
     )
 
     trg_vseq_to_alseq = trg_msa_alignments[msa_type]
@@ -678,8 +653,7 @@ def get_mhc_class_1_alseq(allele):
     for k in mhc_class_1_alfas:
         if k.startswith(allele) and k[len(allele)] == ":":
             suffix = [
-                int(x) if x.isdigit() else 100
-                for x in k[len(allele) + 1 :].split(":")
+                int(x) if x.isdigit() else 100 for x in k[len(allele) + 1 :].split(":")
             ]
             sortl.append((suffix, k))
     if sortl:
@@ -702,8 +676,7 @@ def get_mhc_class_2_alseq(chain, allele):
     for k in mhc_class_2_alfas[chain]:
         if k.startswith(allele) and k[len(allele)] == ":":
             suffix = [
-                int(x) if x.isdigit() else 100
-                for x in k[len(allele) + 1 :].split(":")
+                int(x) if x.isdigit() else 100 for x in k[len(allele) + 1 :].split(":")
             ]
             sortl.append((suffix, k))
     if sortl:
@@ -854,8 +827,7 @@ def get_clean_and_nonredundant_ternary_tcrs_df(
         }
 
         tcr_tuples = [
-            ((l.va, l.ja, l.cdr3a), (l.vb, l.jb, l.cdr3b))
-            for l in tcrs.itertuples()
+            ((l.va, l.ja, l.cdr3a), (l.vb, l.jb, l.cdr3b)) for l in tcrs.itertuples()
         ]
 
         is_redundant = [False] * tcrs.shape[0]
@@ -868,19 +840,12 @@ def get_clean_and_nonredundant_ternary_tcrs_df(
                     continue
 
                 pep_mms = count_peptide_mismatches(irow.pep_seq, jrow.pep_seq)
-                if (
-                    irow.organism == jrow.organism
-                    and irow.mhc_class == jrow.mhc_class
-                ):
+                if irow.organism == jrow.organism and irow.mhc_class == jrow.mhc_class:
                     tcrd = tdist[irow.organism](tcr_tuples[i], tcr_tuples[j])
                     pep_red = pep_mms < min_peptide_mismatches
                     tcr_red = tcrd < min_tcrdist
-                    if (
-                        peptide_tcrdist_logical == "or"
-                        and (pep_red or tcr_red)
-                    ) or (
-                        peptide_tcrdist_logical == "and"
-                        and (pep_red and tcr_red)
+                    if (peptide_tcrdist_logical == "or" and (pep_red or tcr_red)) or (
+                        peptide_tcrdist_logical == "and" and (pep_red and tcr_red)
                     ):
 
                         # redundant
@@ -980,10 +945,7 @@ def filter_templates_by_peptide_mismatches(
 
     templates["filt_peptide_mismatches"] = np.array(
         [
-            min(
-                count_peptide_mismatches(p, l.pep_seq)
-                for p in peptides_for_filtering
-            )
+            min(count_peptide_mismatches(p, l.pep_seq) for p in peptides_for_filtering)
             for l in templates.itertuples()
         ]
     )
@@ -1032,9 +994,7 @@ def pick_dgeom_templates(
     if peptides_for_filtering is None:
         peptides_for_filtering = []
     elif peptides_for_filtering:
-        assert (
-            peptide in peptides_for_filtering
-        )  # sanity? seems like should be true
+        assert peptide in peptides_for_filtering  # sanity? seems like should be true
 
     if exclude_pdbids is None:
         exclude_pdbids = []
@@ -1084,10 +1044,7 @@ def pick_dgeom_templates(
 
     # currently unused...
     templates["peptide_mismatches"] = np.array(
-        [
-            count_peptide_mismatches(peptide, l.pep_seq)
-            for l in templates.itertuples()
-        ]
+        [count_peptide_mismatches(peptide, l.pep_seq) for l in templates.itertuples()]
     )
 
     def calc_chain_tcrdist(row1, row2, chain, tcrdister=tcrdister):
@@ -1346,17 +1303,11 @@ def make_templates_for_alphafold(
         if organism == "human":
             # now adding HLA-E 2022-05-03
             assert (
-                mhc_allele[0] in "ABCE"
-                and mhc_allele[1] == "*"
-                and ":" in mhc_allele
+                mhc_allele[0] in "ABCE" and mhc_allele[1] == "*" and ":" in mhc_allele
             )
-            mhc_allele = ":".join(
-                mhc_allele.split(":")[:2]
-            )  # just the 4 digits
+            mhc_allele = ":".join(mhc_allele.split(":")[:2])  # just the 4 digits
         else:
-            assert (
-                mhc_allele.startswith("H2") and mhc_allele in mhc_class_1_alfas
-            )
+            assert mhc_allele.startswith("H2") and mhc_allele in mhc_class_1_alfas
 
         # first: MHC part
         trg_mhc_alseq = get_mhc_class_1_alseq(mhc_allele)
@@ -1408,13 +1359,9 @@ def make_templates_for_alphafold(
                         alt_self_peptides,
                     )
                 continue
-            assert (
-                len(peptide) - pep_idents >= min_pmhc_peptide_mismatches
-            )  # sanity
+            assert len(peptide) - pep_idents >= min_pmhc_peptide_mismatches  # sanity
             total = len(peptide) + len(trg_mhc_seq)
-            frac = (
-                mhc_idents + pep_idents
-            ) / total - 0.01 * l.mhc_total_chainbreak
+            frac = (mhc_idents + pep_idents) / total - 0.01 * l.mhc_total_chainbreak
             sortl.append((frac, l.Index))
 
         sortl.sort(reverse=True)
@@ -1469,18 +1416,13 @@ def make_templates_for_alphafold(
             trg_pmhc_seq = trg_mhc_seq + peptide
             tmp_pmhc_seq = tmp_mhc_seq + templatel.pep_seq
             identities = sum(
-                trg_pmhc_seq[i] == tmp_pmhc_seq[j]
-                for i, j in trg_to_tmp.items()
+                trg_pmhc_seq[i] == tmp_pmhc_seq[j] for i, j in trg_to_tmp.items()
             ) / len(trg_pmhc_seq)
-            identities_for_sorting = (
-                identities - 0.01 * templatel.mhc_total_chainbreak
-            )
+            identities_for_sorting = identities - 0.01 * templatel.mhc_total_chainbreak
             assert abs(identities_for_sorting - idents) < 1e-3
 
             if verbose:
-                print(
-                    f"oldnew mhc_idents: {idents:6.3f} {identities:6.3f} {pdbid}"
-                )
+                print(f"oldnew mhc_idents: {idents:6.3f} {identities:6.3f} {pdbid}")
             show_alignment(trg_to_tmp, trg_pmhc_seq, tmp_pmhc_seq)
             pmhc_alignments.append(
                 (
@@ -1531,9 +1473,7 @@ def make_templates_for_alphafold(
                 [tmp_mhca_alseq, tmp_mhcb_alseq, l.pep_seq],
             ):
                 assert len(a) == len(b)
-                idents += sum(
-                    x == y for x, y in zip(a, b) if x != ALL_GENES_GAP_CHAR
-                )
+                idents += sum(x == y for x, y in zip(a, b) if x != ALL_GENES_GAP_CHAR)
             sortl.append((idents / len(trg_pmhc_seq), l.pdbid))
         sortl.sort(reverse=True)
         max_idents = sortl[0][0]
@@ -1581,14 +1521,11 @@ def make_templates_for_alphafold(
             }
             trg_offset = len(trg_mhca_seq) + len(trg_mhcb_seq)
             tmp_offset = len(tmp_mhca_seq) + len(tmp_mhcb_seq)
-            al3 = {
-                i + trg_offset: i + tmp_offset for i in range(CLASS2_PEPLEN)
-            }
+            al3 = {i + trg_offset: i + tmp_offset for i in range(CLASS2_PEPLEN)}
             trg_to_tmp = {**al1, **al2, **al3}
             tmp_pmhc_seq = tmp_mhca_seq + tmp_mhcb_seq + templatel.pep_seq
             idents_redo = sum(
-                trg_pmhc_seq[i] == tmp_pmhc_seq[j]
-                for i, j in trg_to_tmp.items()
+                trg_pmhc_seq[i] == tmp_pmhc_seq[j] for i, j in trg_to_tmp.items()
             ) / len(trg_pmhc_seq)
             # print(f'oldnew mhc_idents: {idents:6.3f} {idents_redo:6.3f} {pdbid}')
             assert abs(idents - idents_redo) < 1e-4
@@ -1623,8 +1560,7 @@ def make_templates_for_alphafold(
         templates = tcr_info[tcr_info.ab == ab]
         templates = templates[~templates.pdbid.isin(exclude_pdbids)]
         template_tcrs = [
-            (x.organism[0] + x.v_gene, None, x.cdr3)
-            for x in templates.itertuples()
+            (x.organism[0] + x.v_gene, None, x.cdr3) for x in templates.itertuples()
         ]
         # templates['v_gene j_gene cdr3'.split()].itertuples(index=False))
         closest_tcrs = [
@@ -1646,10 +1582,7 @@ def make_templates_for_alphafold(
             if dist < min_single_chain_tcrdist:
                 # print('too close:', dist, trg_v, trg_j, trg_cdr3, template_tcrs[ind])
                 continue
-            if (
-                closest_dist > big_v_dist
-                and len(alignments) >= num_templates_per_run
-            ):
+            if closest_dist > big_v_dist and len(alignments) >= num_templates_per_run:
                 # print('too far:', closest_dist)
                 break
 
@@ -1674,13 +1607,10 @@ def make_templates_for_alphafold(
             #     templatel.pdbid, templatel.ab, msa_type)
 
             identities = sum(
-                trg_chainseq[i] == templatel.chainseq[j]
-                for i, j in trg_to_tmp.items()
+                trg_chainseq[i] == templatel.chainseq[j] for i, j in trg_to_tmp.items()
             ) / len(trg_chainseq)
 
-            identities_for_sorting = (
-                identities + ternary_bonus * templatel.ternary
-            )
+            identities_for_sorting = identities + ternary_bonus * templatel.ternary
 
             alignments.append(
                 (
@@ -1741,18 +1671,14 @@ def make_templates_for_alphafold(
                 peptide,
             )
             exit()
-        dgeoms = [
-            DockingGeometry().from_dict(x) for _, x in dgeom_info.iterrows()
-        ]
+        dgeoms = [DockingGeometry().from_dict(x) for _, x in dgeom_info.iterrows()]
         if num_runs * num_templates_per_run > len(dgeoms):
             rep_dgeom_indices = np.random.permutation(len(dgeoms))
             rep_dgeoms = [dgeoms[x] for x in rep_dgeom_indices]
         else:
             dummy_organism = "human"  # just used for avg cdr coords
-            rep_dgeoms, rep_dgeom_indices = (
-                docking_geometry.pick_docking_geometry_reps(
-                    dummy_organism, dgeoms, num_runs * num_templates_per_run
-                )
+            rep_dgeoms, rep_dgeom_indices = docking_geometry.pick_docking_geometry_reps(
+                dummy_organism, dgeoms, num_runs * num_templates_per_run
             )
     elif use_opt_dgeoms:
         rep_dgeoms = docking_geometry.load_opt_dgeoms(mhc_class)
@@ -1782,19 +1708,15 @@ def make_templates_for_alphafold(
             exclude_docking_geometry_peptides,
             min_dgeom_peptide_mismatches,
         )
-        dgeoms = [
-            DockingGeometry().from_dict(x) for _, x in dgeom_info.iterrows()
-        ]
+        dgeoms = [DockingGeometry().from_dict(x) for _, x in dgeom_info.iterrows()]
 
         if num_runs * num_templates_per_run > len(dgeoms):
             rep_dgeom_indices = np.random.permutation(len(dgeoms))
             rep_dgeoms = [dgeoms[x] for x in rep_dgeom_indices]
         else:
             dummy_organism = "human"  # just used for avg cdr coords
-            rep_dgeoms, rep_dgeom_indices = (
-                docking_geometry.pick_docking_geometry_reps(
-                    dummy_organism, dgeoms, num_runs * num_templates_per_run
-                )
+            rep_dgeoms, rep_dgeom_indices = docking_geometry.pick_docking_geometry_reps(
+                dummy_organism, dgeoms, num_runs * num_templates_per_run
             )
 
     # print('dgeoms:', len(dgeoms), len(rep_dgeoms))
@@ -1826,36 +1748,22 @@ def make_templates_for_alphafold(
                 dgeom_row = dgeom_info.iloc[rep_dgeom_indices[dgeom_repno]]
 
             pmhc_pdbid = pmhc_al[1]
-            pmhc_pose, pmhc_tdinfo = get_template_pose_and_tdinfo(
-                pmhc_pdbid, PMHC
-            )
+            pmhc_pose, pmhc_tdinfo = get_template_pose_and_tdinfo(pmhc_pdbid, PMHC)
 
             tcra_pdbid = tcra_al[1]
-            tcra_pose, tcra_tdinfo = get_template_pose_and_tdinfo(
-                tcra_pdbid, TCR
-            )
+            tcra_pose, tcra_tdinfo = get_template_pose_and_tdinfo(tcra_pdbid, TCR)
 
             tcrb_pdbid = tcrb_al[1]
-            tcrb_pose, tcrb_tdinfo = get_template_pose_and_tdinfo(
-                tcrb_pdbid, TCR
-            )
+            tcrb_pose, tcrb_tdinfo = get_template_pose_and_tdinfo(tcrb_pdbid, TCR)
 
             # assert ((mhc_class==1 and pmhc_pose.num_chains() == 4) or
             #         (mhc_class==2 and pmhc_pose.num_chains() == 5))
-            assert (
-                len(tcra_pose["chains"]) == 2 and len(tcrb_pose["chains"]) == 2
-            )
+            assert len(tcra_pose["chains"]) == 2 and len(tcrb_pose["chains"]) == 2
 
             # copy tcrb into tcra_pose by superimposing core coords
-            fix_coords = tcra_pose["ca_coords"][
-                tcra_tdinfo.tcr_core[core_len:]
-            ]
-            mov_coords = tcrb_pose["ca_coords"][
-                tcrb_tdinfo.tcr_core[core_len:]
-            ]
-            R, v = superimpose.superimposition_transform(
-                fix_coords, mov_coords
-            )
+            fix_coords = tcra_pose["ca_coords"][tcra_tdinfo.tcr_core[core_len:]]
+            mov_coords = tcrb_pose["ca_coords"][tcrb_tdinfo.tcr_core[core_len:]]
+            R, v = superimpose.superimposition_transform(fix_coords, mov_coords)
             tcrb_pose = apply_transform_Rx_plus_v(tcrb_pose, R, v)
             tcra_pose = delete_chains(tcra_pose, [1])
             tcra_pose = append_chains(tcra_pose, tcrb_pose, [1])
@@ -1885,9 +1793,7 @@ def make_templates_for_alphafold(
             # copy tcr from tcra_pose into pmhc_pose
             num_pmhc_chains = mhc_class + 1
             if len(pmhc_pose["chains"]) > num_pmhc_chains:
-                del_chains = list(
-                    range(num_pmhc_chains, len(pmhc_pose["chains"]))
-                )
+                del_chains = list(range(num_pmhc_chains, len(pmhc_pose["chains"])))
                 pmhc_pose = delete_chains(pmhc_pose, del_chains)
             pmhc_pose = append_chains(pmhc_pose, tcra_pose, [0, 1])
             assert len(pmhc_pose["chains"]) == 2 + num_pmhc_chains
@@ -1902,9 +1808,7 @@ def make_templates_for_alphafold(
             # should be the same as new_tcr_stub!
             redo_tcr_stub = tcr_util.get_tcr_stub(pmhc_pose, pmhc_tdinfo)
             v_dev = norm(redo_tcr_stub["origin"] - new_tcr_stub["origin"])
-            M_dev = norm(
-                new_tcr_stub["axes"] @ redo_tcr_stub["axes"].T - np.eye(3)
-            )
+            M_dev = norm(new_tcr_stub["axes"] @ redo_tcr_stub["axes"].T - np.eye(3))
             if max(v_dev, M_dev) > 5e-2:
                 print("devs:", v_dev, M_dev)
             assert v_dev < 5e-2
@@ -1998,9 +1902,7 @@ def make_templates_for_alphafold(
                 tcrb_v=tcr_info.loc[(tcrb_pdbid, "B"), "v_gene"],
                 tcrb_j=tcr_info.loc[(tcrb_pdbid, "B"), "j_gene"],
                 tcrb_cdr3=tcr_info.loc[(tcrb_pdbid, "B"), "cdr3"],
-                dgeom_pdbid=(
-                    f"opt{itmp}" if dgeom_row is None else dgeom_row.pdbid
-                ),
+                dgeom_pdbid=(f"opt{itmp}" if dgeom_row is None else dgeom_row.pdbid),
                 template_pdbfile=outpdbfile,
                 target_to_template_alignstring=alignstring,
                 identities=identities,
@@ -2114,9 +2016,7 @@ def setup_for_alphafold(
 
     tcr_db = tcr_db.copy()
     tcr_db["mhc_peptide"] = (
-        tcr_db.mhc.str.replace("*", "", regex=False).str.replace(
-            ":", "", regex=False
-        )
+        tcr_db.mhc.str.replace("*", "", regex=False).str.replace(":", "", regex=False)
         + "_"
         + tcr_db.peptide
     )
@@ -2135,9 +2035,7 @@ def setup_for_alphafold(
 
     # optionally filter to peptide mhc combos with min/max counts ##########
     if min_pmhc_count is not None or max_pmhc_count is not None:
-        tcr_db.sort_values(
-            "mhc_peptide", inplace=True
-        )  ## IMPORTANT B/C MASKING
+        tcr_db.sort_values("mhc_peptide", inplace=True)  ## IMPORTANT B/C MASKING
         random.seed(random_seed)  # shuffling of epitope tcrs
         assert min_pmhc_count is not None and max_pmhc_count is not None
         mhc_peptides = tcr_db.mhc_peptide.drop_duplicates().to_list()
@@ -2184,9 +2082,7 @@ def setup_for_alphafold(
 
     targets_dfl = []
     for index, targetl in tcr_db.iterrows():
-        targetid_prefix = (
-            f"T{index:05d}_{targetl.mhc_peptide}{targetid_prefix_suffix}"
-        )
+        targetid_prefix = f"T{index:05d}_{targetl.mhc_peptide}{targetid_prefix_suffix}"
         print("START", index, tcr_db.shape[0], targetid_prefix)
         outfile_prefix = f"{outdir}{targetid_prefix}"
         if exclude_self_peptide_docking_geometries:
@@ -2253,9 +2149,7 @@ def setup_for_alphafold(
     print("made:", outfile)
 
 
-def get_mhc_chain_trim_positions(
-    chainseq, organism, mhc_class, mhc_allele, chain=None
-):
+def get_mhc_chain_trim_positions(chainseq, organism, mhc_class, mhc_allele, chain=None):
     """ """
     assert mhc_class in [1, 2]
     if mhc_class == 2:
