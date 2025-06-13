@@ -14,8 +14,9 @@ dependencies = [
     "matplotlib",
 ]
 
-[tool.setuptools]
-packages = ["tcrdock"]
+[tool.setuptools.packages.find]
+where   = ["."]
+include = ["tcrdock*"] 
 
 [tool.setuptools.package-data]
 tcrdock = [
