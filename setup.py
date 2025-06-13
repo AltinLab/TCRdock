@@ -16,7 +16,7 @@ class CustomInstall(install):
 setup(
     name="tcrdock",
     version="0.1.0",
-    packages=find_packages(),
+    packages=["tcrdock"],
     install_requires=[
         "biopython",
         "numpy",
@@ -28,7 +28,7 @@ setup(
         "install": CustomInstall,
     },
     package_data={
-        "": [
+        "tcrdock": [
             "**/*.alfas",
             "**/*.fasta",
             "**/*.txt",
