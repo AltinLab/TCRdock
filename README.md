@@ -141,7 +141,7 @@ to be installed, which can be done by running the script
 `download_blast.py`. A potential installation route would be:
 
 ```
-conda create --name tcrdock_test python=3.8
+conda create --name tcrdock_test python blast
 source activate tcrdock_test   # or: conda activate tcrdock_test
 pip install <path/to/cloned/repo>
 ```
