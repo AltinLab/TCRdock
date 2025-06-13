@@ -143,8 +143,7 @@ to be installed, which can be done by running the script
 ```
 conda create --name tcrdock_test python=3.8
 source activate tcrdock_test   # or: conda activate tcrdock_test
-pip3 install -r requirements.txt
-python download_blast.py
+pip install <path/to/cloned/repo>
 ```
 
 To run the AlphaFold simulations, you will need a Python environment that satisfies
