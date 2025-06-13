@@ -53,6 +53,7 @@ jobs:
           add-pip-as-python-dependency: true
           environment-name: tcrdock-test
           auto-activate-base: false
+          miniconda-version: "latest"
 
       - name: Install package
         run: |
