@@ -1,3 +1,32 @@
 [build-system]
 requires = ["setuptools >= 42.0.0"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "tcrdock"
+version = "0.1.0"
+
+dependencies = [
+    "biopython",
+    "numpy",
+    "pandas",
+    "scipy",
+    "matplotlib",
+]
+
+[tool.setuptools]
+packages = ["tcrdock"]
+
+[tool.setuptools.package-data]
+tcrdock = [
+    "**/*.alfas",
+    "**/*.fasta",
+    "**/*.txt",
+    "**/*.tsv",
+    "**/tcr/*.pdb",
+    "**/tcr/*.json",
+    "**/ternary/*.pdb",
+    "**/ternary/*.json",
+    "**/pmhc/*.pdb",
+    "**/pmhc/*.json",
+]
