@@ -18,11 +18,11 @@ setup(
     version="0.1.0",
     packages=find_packages(),
     install_requires=[
-        "biopython==1.79",
-        "numpy==1.19.5",
-        "pandas==1.3.4",
-        "scipy==1.7.0",
-        "matplotlib==3.3.4",
+        "biopython",
+        "numpy",
+        "pandas",
+        "scipy",
+        "matplotlib",
     ],
     cmdclass={
         "install": CustomInstall,
