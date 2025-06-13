@@ -44,7 +44,7 @@ both_structure_alignments.set_index(
 
 def read_fasta(filename):  # helper
     """return OrderedDict indexed by the ">" lines (everything after >)"""
-    data = open(filename, "rU")
+    data = open(filename, "r")
     fasta = OrderedDict()
     for line in data:
         if line[0] == ">":
