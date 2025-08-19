@@ -1,0 +1,15 @@
+name: tcrdock-test
+channels:
+  - defaults
+  - conda-forge
+  - bioconda
+dependencies:
+  ### Base depends ###
+  - python>=3.10.0
+  - pip
+
+  ## main deps
+  - blast
+
+  ## testing
+  - pytest

@@ -2,6 +2,9 @@
 *pyc
 __pycache__
 *.fasta.pdb
+*.fasta.blast
+*.fasta
+*.tsv
 *.phr
 *.pin
 *.pot
@@ -10,3 +13,10 @@ __pycache__
 *.pto
 imgt_prot_blast_db_*fasta
 ncbi-blast-*
+*.egg-info
+**/*.log
+**/*.ipynb
+.vscode
+.nextflow
+build
+tmp

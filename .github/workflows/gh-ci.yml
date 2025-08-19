@@ -1,0 +1,76 @@
+name: GH Actions CI
+'on':
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+      - develop
+  schedule:
+    # Weekly tests at midnight on Sundays run on main by default:
+    #   Scheduled workflows run on the latest commit on the default or base branch.
+    #   (from https://help.github.com/en/actions/reference/events-that-trigger-workflows#scheduled-events-schedule)
+    - cron: 0 0 * * 0
+
+concurrency:
+  # Specific group naming so CI is only cancelled
+  # within same PR or on merge to main
+  group: ${{ github.ref }}-${{ github.head_ref }}-${{ github.workflow }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash -l {0}
+
+jobs:
+  main-tests:
+    if: github.repository == 'ljwoods2/TCRdock'
+    # needs: environment-config
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - macOS-latest
+          - ubuntu-latest
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build information
+        run: |
+          uname -a
+          df -h
+          ulimit -a
+
+      # More info on options: https://github.com/conda-incubator/setup-miniconda
+      - name: Create & activate conda env
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+          add-pip-as-python-dependency: true
+          auto-activate-base: false
+          miniconda-version: "latest"
+          environment-file: devtools/conda-envs/test_env.yaml
+          activate-environment: tcrdock-test
+          auto-update-conda: true
+          show-channel-urls: true
+
+      - name: Install package
+        run: |
+          python --version
+          python -m pip install .
+
+      - name: Python information
+        run: |
+          which python
+          which pip
+          pip list
+          conda info
+          conda list
+
+      - name: Run tests
+        run: |
+          pytest -v -x --color=yes tcrdock/tests
