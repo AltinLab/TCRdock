@@ -19,3 +19,4 @@ ncbi-blast-*
 .vscode
 .nextflow
 build
+tmp

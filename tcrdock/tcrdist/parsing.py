@@ -12,6 +12,7 @@ from .all_genes import all_genes, gap_character
 from .genetic_code import genetic_code, reverse_genetic_code
 from . import logo_tools
 from ..blast import blast_sequence_and_read_hits, setup_query_to_hit_map
+import numpy as np
 
 
 def get_blast_db_path(organism, ab, vj):
@@ -47,9 +48,7 @@ all_core_alseq_positions_0x = {}
 for organism in extra_alignment_columns_1x:
     for ab, xcols in extra_alignment_columns_1x[organism].items():
         positions = [
-            x
-            - 1
-            + sum(y <= x for y in xcols)  # this is not quite right but it wrks
+            x - 1 + sum(y <= x for y in xcols)  # this is not quite right but it wrks
             for x in core_positions_generic_1x
         ]
 
@@ -141,9 +140,7 @@ def parse_other_cdrs(organism, ab, qseq, v_gene, q2v_align):
         stop = alseq2seq[stop_col_1x - 1]
 
         ## what aligns to this region in v_hit
-        q_loop_positions = [
-            i for i, j in q2v_align.items() if start <= j <= stop
-        ]
+        q_loop_positions = [i for i, j in q2v_align.items() if start <= j <= stop]
         if q_loop_positions:
             qstart = min(q_loop_positions)
             qstop = max(q_loop_positions)
@@ -190,18 +187,73 @@ def parse_cdr3(organism, ab, qseq, v_gene, j_gene, q2v_align, q2j_align):
     return [query_cpos, query_fpos], v_mismatches, j_mismatches
 
 
+def anarci_parse_cdrs(organism, ab, qseq):
+    try:
+        import anarci
+    except ImportError:
+        raise ModuleNotFoundError(
+            "anarci not installed, skipping CDR parsing. Try `conda install -c bioconda anarci`"
+        )
+
+    if ab == "A":
+        allow = set(["A", "D"])
+    elif ab == "B":
+        allow = set(["B"])
+
+    results = anarci.run_anarci(
+        [("AAA", qseq)],
+        scheme="imgt",
+        allowed_species=["human"],
+        allow=allow,
+    )
+    if results[1][0] is None:
+        raise ValueError(f"No domain found for sequence '{qseq}'")
+
+    numbering = results[1][0][0]
+    sub_start = numbering[1]
+    sub_stop = numbering[2] + 1
+
+    # this entire substring will be numbered
+    # however, there may be gaps in the sequence
+    # which are given an IMGT number
+    numbered_substring = qseq[sub_start:sub_stop]
+    imgt_num = np.zeros((len(range(sub_start, sub_stop)),), dtype=np.int32)
+    imgt_tuples = numbering[0]
+    j = 0
+    for i in range(len(numbered_substring)):
+        aa = numbered_substring[i]
+        while j < len(imgt_tuples) and imgt_tuples[j][1] != aa:
+            j += 1
+        if j < len(imgt_tuples):
+            imgt_num[i] = imgt_tuples[j][0][0]
+            j += 1
+
+    # return list of (start, stop) tuples for CDRs
+    cdr_tuples = []
+    cdr_1 = np.nonzero((imgt_num >= 27) & (imgt_num <= 38))[0] + sub_start
+    cdr_tuples.append([cdr_1[0], cdr_1[-1]])
+
+    cdr_2 = np.nonzero((imgt_num >= 50) & (imgt_num <= 65))[0] + sub_start
+    cdr_tuples.append([cdr_2[0], cdr_2[-1]])
+
+    cdr_2_5 = np.nonzero((imgt_num >= 81) & (imgt_num <= 86))[0] + sub_start
+    cdr_tuples.append([cdr_2_5[0], cdr_2_5[-1]])
+
+    cdr_3 = np.nonzero((imgt_num >= 104) & (imgt_num <= 118))[0] + sub_start
+    cdr_tuples.append([cdr_3[0], cdr_3[-1]])
+    return cdr_tuples
+
+
 def get_top_blast_hit_with_allele_sorting(hits):
     """In the case of ties, prefer lower allele numbers"""
     top_bitscore = max(hits.bitscore)
     top_hits = hits[hits.bitscore == top_bitscore].copy()
     # print('top_bitscore:', top_bitscore, 'ties:', top_hits.shape[0])
-    top_hits["allele"] = (
-        top_hits.saccver.str.split("*").str.get(-1).astype(int)
-    )
+    top_hits["allele"] = top_hits.saccver.str.split("*").str.get(-1).astype(int)
     return top_hits.sort_values("allele").iloc[0].copy()
 
 
-def parse_tcr_sequence(organism, chain, sequence):
+def parse_tcr_sequence(organism, chain, sequence, anarci_cdrs=False):
     """return dict with keys
     * cdr_loops
     * core_positions
@@ -220,6 +272,8 @@ def parse_tcr_sequence(organism, chain, sequence):
 
     """
     assert chain in "AB"
+
+    result = {"mismatches": {}}
 
     tmpdbfile = get_blast_db_path(organism, chain, "V")
     if not exists(tmpdbfile):
@@ -243,23 +297,38 @@ def parse_tcr_sequence(organism, chain, sequence):
         v_gene = v_hit.saccver
         j_gene = j_hit.saccver
 
-        cdr3_bounds, v_mismatches, j_mismatches = parse_cdr3(
-            organism,
-            chain,
-            sequence,
-            v_gene,
-            j_gene,
-            q2v_align,
-            q2j_align,
-        )
+        if anarci_cdrs:
+            cdr_loops = anarci_parse_cdrs(organism, chain, sequence)
+            result["cdr_loops"] = cdr_loops
 
-        other_cdr_bounds, other_cdr_mismatches = parse_other_cdrs(
-            organism,
-            chain,
-            sequence,
-            v_gene,
-            q2v_align,
-        )
+        else:
+            cdr3_bounds, v_mismatches, j_mismatches = parse_cdr3(
+                organism,
+                chain,
+                sequence,
+                v_gene,
+                j_gene,
+                q2v_align,
+                q2j_align,
+            )
+
+            other_cdr_bounds, other_cdr_mismatches = parse_other_cdrs(
+                organism,
+                chain,
+                sequence,
+                v_gene,
+                q2v_align,
+            )
+
+            cdr_loops = other_cdr_bounds + [cdr3_bounds]
+
+            if any(None in bounds for bounds in cdr_loops):
+                return {}  # signal failure ### EARLY RETURN!!!
+
+            result["cdr_loops"] = cdr_loops
+            result["mismatches"]["other_cdr_mismatches"] = other_cdr_mismatches
+            result["mismatches"]["v_mismatches"] = v_mismatches
+            result["mismatches"]["j_mismatches"] = j_mismatches
 
         core_positions, core_mismatches = parse_core_positions(
             organism, chain, sequence, v_gene, q2v_align
@@ -269,22 +338,11 @@ def parse_tcr_sequence(organism, chain, sequence):
             # fail
             return {}
 
-        cdr_loops = other_cdr_bounds + [cdr3_bounds]
-        if any(None in bounds for bounds in cdr_loops):
-            return {}  # signal failure ### EARLY RETURN!!!
+        result["core_positions"] = core_positions
+        result["v_gene"] = v_gene
+        result["j_gene"] = j_gene
+        result["mismatches"]["core_mismatches"] = core_mismatches
 
-        result = {
-            "cdr_loops": cdr_loops,
-            "core_positions": core_positions,
-            "v_gene": v_gene,
-            "j_gene": j_gene,
-            "mismatches": {
-                "v_mismatches": v_mismatches,
-                "j_mismatches": j_mismatches,
-                "other_cdr_mismatches": other_cdr_mismatches,
-                "core_mismatches": core_mismatches,
-            },
-        }
         return result
     else:
         print("failed to find v and j matches")

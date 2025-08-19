@@ -51,6 +51,7 @@ class TCRdockInfo:
         pep_seq,  # '' if tcr_only
         tcr_aseq,
         tcr_bseq,
+        anarci_cdrs=False,
     ):
         self.valid = False
         self.organism = organism
@@ -93,7 +94,9 @@ class TCRdockInfo:
         self.tcr_core = []
         self.tcr = []
         for chain, chainseq in zip("AB", [tcr_aseq, tcr_bseq]):
-            res = tcrdist.parsing.parse_tcr_sequence(organism, chain, chainseq)
+            res = tcrdist.parsing.parse_tcr_sequence(
+                organism, chain, chainseq, anarci_cdrs=anarci_cdrs
+            )
             if not res:
                 other_organism = "human" if organism == "mouse" else "mouse"
                 res = tcrdist.parsing.parse_tcr_sequence(
@@ -103,6 +106,7 @@ class TCRdockInfo:
                     # parse failure
                     print("TCRdockInfo:: TCR parse fail!")
                     return self  ########## early return
+
             cdr_loops = res["cdr_loops"]
             cdr3_start, cdr3_end = cdr_loops[-1]
             cdr3 = chainseq[cdr3_start : cdr3_end + 1]
@@ -113,6 +117,9 @@ class TCRdockInfo:
             self.tcr_cdrs.extend(
                 [(int(x[0] + offset), int(x[1] + offset)) for x in cdr_loops]
             )
+
+            self.tcr.append((res["v_gene"], res["j_gene"], None))
+
             self.tcr_core.extend([int(x + offset) for x in res["core_positions"]])
 
             offset += len(chainseq)
